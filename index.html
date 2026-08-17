@@ -14,67 +14,99 @@
   <header class="app-header">
     <div>
       <h1>Calorie Tracker</h1>
-      <p id="todayLabel"></p>
+      <p id="headerSubtext">Multi-device calorie diary</p>
     </div>
-    <button id="settingsBtn" class="icon-btn" aria-label="Settings">⚙️</button>
+    <button id="accountBtn" class="icon-btn" aria-label="Account">👤</button>
   </header>
 
   <main>
-    <section class="summary-card">
-      <div class="summary-main">
-        <span class="label">Calories left</span>
-        <strong id="caloriesLeft">0</strong>
-        <span class="unit">kcal</span>
-      </div>
-      <div class="summary-row">
-        <div><span>Target</span><strong id="targetCalories">0</strong></div>
-        <div><span>Eaten</span><strong id="eatenCalories">0</strong></div>
-      </div>
-      <div class="progress-track"><div id="progressBar" class="progress-bar"></div></div>
+    <section id="authView" class="auth-card">
+      <h2>Sign in</h2>
+      <p class="muted">Your foods, recipes and diary will sync across your devices.</p>
+      <form id="authForm">
+        <label>Email
+          <input id="authEmail" type="email" autocomplete="email" required>
+        </label>
+        <label>Password
+          <input id="authPassword" type="password" autocomplete="current-password" minlength="6" required>
+        </label>
+        <div class="auth-actions">
+          <button type="submit" class="primary-btn">Sign in</button>
+          <button type="button" id="signUpBtn" class="secondary-btn">Create account</button>
+        </div>
+      </form>
+      <p id="authMessage" class="status"></p>
     </section>
 
-    <section class="tabs" aria-label="Main navigation">
-      <button class="tab active" data-tab="diary">Diary</button>
-      <button class="tab" data-tab="foods">Foods</button>
-      <button class="tab" data-tab="recipes">Recipes</button>
-    </section>
+    <section id="appView" hidden>
+      <section class="summary-card">
+        <div class="date-nav">
+          <button id="prevDayBtn" class="icon-btn" aria-label="Previous day">←</button>
+          <div>
+            <strong id="selectedDateLabel"></strong>
+            <button id="todayBtn" class="link-btn" type="button">Today</button>
+          </div>
+          <button id="nextDayBtn" class="icon-btn" aria-label="Next day">→</button>
+        </div>
 
-    <section id="diary" class="tab-panel active">
-      <div class="section-heading">
-        <h2>Today</h2>
-        <button id="addDiaryBtn" class="primary-btn">+ Add food</button>
-      </div>
-      <div id="diaryList" class="card-list"></div>
-    </section>
+        <div class="summary-main">
+          <span class="label">Calories left</span>
+          <strong id="caloriesLeft">0</strong>
+          <span class="unit">kcal</span>
+        </div>
 
-    <section id="foods" class="tab-panel">
-      <div class="section-heading">
-        <h2>My foods</h2>
-        <button id="addFoodBtn" class="primary-btn">+ New food</button>
-      </div>
-      <input id="foodSearch" class="search" type="search" placeholder="Search foods">
-      <div id="foodList" class="card-list"></div>
-    </section>
+        <div class="summary-row">
+          <div><span>Target</span><strong id="targetCalories">0</strong></div>
+          <div><span>Eaten</span><strong id="eatenCalories">0</strong></div>
+        </div>
+        <div class="progress-track"><div id="progressBar" class="progress-bar"></div></div>
+      </section>
 
-    <section id="recipes" class="tab-panel">
-      <div class="section-heading">
-        <h2>My recipes</h2>
-        <button id="addRecipeBtn" class="primary-btn">+ New recipe</button>
-      </div>
-      <div id="recipeList" class="card-list"></div>
+      <section class="tabs" aria-label="Main navigation">
+        <button class="tab active" data-tab="diary">Diary</button>
+        <button class="tab" data-tab="foods">Foods</button>
+        <button class="tab" data-tab="recipes">Recipes</button>
+      </section>
+
+      <section id="diary" class="tab-panel active">
+        <div class="section-heading">
+          <h2>Diary</h2>
+          <button id="addDiaryBtn" class="primary-btn">+ Add</button>
+        </div>
+        <div id="mealSections"></div>
+      </section>
+
+      <section id="foods" class="tab-panel">
+        <div class="section-heading">
+          <h2>My foods</h2>
+          <button id="addFoodBtn" class="primary-btn">+ New food</button>
+        </div>
+        <input id="foodSearch" class="search" type="search" placeholder="Search foods">
+        <div id="foodList" class="card-list"></div>
+      </section>
+
+      <section id="recipes" class="tab-panel">
+        <div class="section-heading">
+          <h2>My recipes</h2>
+          <button id="addRecipeBtn" class="primary-btn">+ New recipe</button>
+        </div>
+        <div id="recipeList" class="card-list"></div>
+      </section>
     </section>
   </main>
 
-  <dialog id="settingsDialog">
-    <form method="dialog" id="settingsForm">
-      <h2>Daily target</h2>
-      <label>Calories per day
-        <input id="targetInput" type="number" min="1" step="1" required>
+  <dialog id="accountDialog">
+    <form method="dialog">
+      <h2>Account</h2>
+      <p id="accountEmail" class="muted"></p>
+      <label>Daily calorie target
+        <input id="targetInput" type="number" min="1" step="1">
       </label>
       <menu>
-        <button value="cancel" class="secondary-btn">Cancel</button>
-        <button value="save" class="primary-btn" id="saveSettingsBtn">Save</button>
+        <button value="cancel" class="secondary-btn">Close</button>
+        <button id="saveTargetBtn" value="save" class="primary-btn">Save target</button>
       </menu>
+      <button id="signOutBtn" type="button" class="danger-btn full-width">Sign out</button>
     </form>
   </dialog>
 
@@ -85,11 +117,22 @@
       <label>Name
         <input id="foodName" type="text" required>
       </label>
-      <label>Calories per serving
-        <input id="foodCalories" type="number" min="0" step="1" required>
+      <label>Calories
+        <input id="foodCalories" type="number" min="0" step="0.1" required>
+      </label>
+      <label>Amount for those calories
+        <input id="foodBaseAmount" type="number" min="0.01" step="0.01" value="100" required>
+      </label>
+      <label>Unit
+        <select id="foodUnit">
+          <option value="g">g</option>
+          <option value="ml">ml</option>
+          <option value="item">item</option>
+          <option value="serving">serving</option>
+        </select>
       </label>
       <label>Serving description
-        <input id="foodServing" type="text" placeholder="e.g. 1 slice, 100 g, 1 pot">
+        <input id="foodServing" type="text" placeholder="e.g. 1 slice or 1 pot">
       </label>
       <menu>
         <button value="cancel" class="secondary-btn">Cancel</button>
@@ -105,13 +148,20 @@
       <label>Recipe name
         <input id="recipeName" type="text" required>
       </label>
-      <label>Total calories
-        <input id="recipeCalories" type="number" min="0" step="1" required>
-      </label>
-      <label>Number of servings
+      <label>Servings
         <input id="recipeServings" type="number" min="0.1" step="0.1" value="1" required>
       </label>
-      <p class="hint">Calories per serving: <strong id="recipePerServing">0</strong> kcal</p>
+
+      <div class="section-heading compact">
+        <h3>Ingredients</h3>
+        <button id="addIngredientRowBtn" type="button" class="secondary-btn">+ Ingredient</button>
+      </div>
+      <div id="ingredientRows"></div>
+
+      <div class="recipe-totals">
+        <span>Total: <strong id="recipeTotalCalories">0</strong> kcal</span>
+        <span>Per serving: <strong id="recipePerServing">0</strong> kcal</span>
+      </div>
       <menu>
         <button value="cancel" class="secondary-btn">Cancel</button>
         <button value="save" class="primary-btn">Save recipe</button>
@@ -121,13 +171,22 @@
 
   <dialog id="addDiaryDialog">
     <form method="dialog" id="addDiaryForm">
-      <h2>Add to today</h2>
+      <h2>Add to diary</h2>
+      <label>Meal
+        <select id="diaryMeal">
+          <option>Breakfast</option>
+          <option>Lunch</option>
+          <option>Dinner</option>
+          <option>Snacks</option>
+        </select>
+      </label>
       <label>Item
         <select id="diaryItemSelect" required></select>
       </label>
-      <label>Servings
-        <input id="diaryServings" type="number" min="0.1" step="0.1" value="1" required>
+      <label>Amount / servings
+        <input id="diaryQuantity" type="number" min="0.01" step="0.01" value="1" required>
       </label>
+      <p class="hint" id="diaryUnitHint"></p>
       <p class="hint">This will add <strong id="diaryCalculatedCalories">0</strong> kcal.</p>
       <menu>
         <button value="cancel" class="secondary-btn">Cancel</button>
@@ -136,6 +195,8 @@
     </form>
   </dialog>
 
+  <script src="config.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <script src="app.js"></script>
 </body>
 </html>

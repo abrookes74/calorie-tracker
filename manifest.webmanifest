@@ -5,5 +5,5 @@
   "display": "standalone",
   "background_color": "#f5f5f5",
   "theme_color": "#ffffff",
-  "description": "A simple personal calorie tracker."
+  "description": "A multi-device calorie tracker using Supabase."
 }
