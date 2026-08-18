@@ -1,4 +1,4 @@
-# Calorie Tracker v3.4
+# Calorie Tracker v3.5
 
 ## New in v3
 - Food categories
@@ -54,3 +54,11 @@ If RecipeSage recipes were imported using v3/v3.2 before ingredient-food creatio
 Foods -> Build foods from imported recipes
 
 This scans unmatched stored recipe ingredient lines, creates reusable food records with calories unset, and links the existing recipe ingredients to those foods. No RecipeSage re-import or recipe deletion is required.
+
+
+## v3.5 diary filtering
+The Add to diary dialog now includes:
+- Item type: Foods only, Recipes only, or Foods & recipes
+- Food category filter
+- The item dropdown is reduced to matching items only
+- Foods without calorie data are excluded from diary selection
