@@ -1,4 +1,4 @@
-# Calorie Tracker v3.6
+# Calorie Tracker v3.7
 
 ## New in v3
 - Food categories
@@ -70,3 +70,11 @@ The Add to diary dialog now includes:
 - Removes the obsolete "Build foods from imported recipes" feature.
 - RecipeSage import now creates recipes only. Ingredient lines are stored as recipe text and never create Foods.
 - Foods remain a separate list containing only items you deliberately create.
+
+
+## v3.7 recipe label filtering
+- RecipeSage recipe categories/tags are used as recipe labels.
+- Recipes tab has a text search and an All recipe labels filter.
+- Add to diary shows a Recipe label filter when Recipe is selected.
+- Recipe label filtering works alongside the existing food-category filter.
+- No database migration is required for v3.7 because recipe categories are already stored.

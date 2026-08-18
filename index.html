@@ -74,6 +74,10 @@
 
   <section id="recipes" class="tab-panel">
     <div class="section-heading"><h2>My recipes</h2><button id="addRecipeBtn" class="primary-btn">+ New recipe</button></div>
+    <div class="filters">
+      <input id="recipeSearch" class="search" type="search" placeholder="Search recipes">
+      <select id="recipeLabelFilter"><option value="">All recipe labels</option></select>
+    </div>
     <div class="button-row utility-row">
       <button id="importRecipesBtn" class="secondary-btn">Import RecipeSage JSON</button>
       <input id="recipeImportFile" type="file" accept=".json,application/json" hidden>
@@ -143,6 +147,11 @@
       <option value="">All food categories</option>
     </select>
   </label>
+  <label id="diaryRecipeLabelFilterLabel" style="display:none">Recipe label
+    <select id="diaryRecipeLabelFilter">
+      <option value="">All recipe labels</option>
+    </select>
+  </label>
   <label>Item<select id="diaryItemSelect" required></select></label>
   <label>Amount / servings<input id="diaryQuantity" type="number" min="0.01" step="0.01" value="1" required></label>
   <p class="hint" id="diaryUnitHint"></p>
@@ -163,5 +172,5 @@
 
 <script src="config.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-<script src="app-v3.6.js"></script>
+<script src="app-v3.7.js"></script>
 </body></html>
