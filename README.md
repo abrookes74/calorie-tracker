@@ -1,4 +1,4 @@
-# Calorie Tracker v3.5
+# Calorie Tracker v3.6
 
 ## New in v3
 - Food categories
@@ -62,3 +62,11 @@ The Add to diary dialog now includes:
 - Food category filter
 - The item dropdown is reduced to matching items only
 - Foods without calorie data are excluded from diary selection
+
+
+## v3.6 corrections
+- Fixes the JavaScript syntax error in v3.5 that prevented sign-in.
+- Keeps the new diary item-type and food-category filters.
+- Removes the obsolete "Build foods from imported recipes" feature.
+- RecipeSage import now creates recipes only. Ingredient lines are stored as recipe text and never create Foods.
+- Foods remain a separate list containing only items you deliberately create.
