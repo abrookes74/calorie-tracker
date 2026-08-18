@@ -1,4 +1,4 @@
-# Calorie Tracker v3.8 Sage
+# Calorie Tracker v3.9 Sage
 
 ## New in v3
 - Food categories
@@ -88,3 +88,10 @@ The Add to diary dialog now includes:
 - Polished calorie summary and progress bar
 - Updated browser/PWA theme colour
 - No database changes required
+
+
+## v3.9 cache-busting fix
+- Renames the stylesheet to styles-v3.9.css.
+- Renames the app script to app-v3.9.js.
+- Service worker now deletes all older Calorie Tracker caches during activation.
+- Adds a small "Sage v3.9" marker in the header so you can immediately confirm the new version is loaded.
