@@ -1,282 +1,164 @@
 
-const cfg = window.APP_CONFIG || {};
-const client = supabase.createClient(cfg.SUPABASE_URL, cfg.SUPABASE_PUBLISHABLE_KEY);
+const cfg=window.APP_CONFIG||{};
+const client=supabase.createClient(cfg.SUPABASE_URL,cfg.SUPABASE_PUBLISHABLE_KEY);
+let session=null,selectedDate=new Date(),profile={daily_calorie_target:2000},foods=[],recipes=[],recipeItems=[],diary=[],weights=[];
+const $=s=>document.querySelector(s),fmt=n=>Math.round(Number(n)||0),dateKey=d=>`${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,"0")}-${String(d.getDate()).padStart(2,"0")}`;
+const esc=(s="")=>String(s).replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#039;"}[c]));
+const E={authView:$("#authView"),appView:$("#appView"),authForm:$("#authForm"),authEmail:$("#authEmail"),authPassword:$("#authPassword"),authMessage:$("#authMessage"),
+selectedDateLabel:$("#selectedDateLabel"),caloriesLeft:$("#caloriesLeft"),targetCalories:$("#targetCalories"),eatenCalories:$("#eatenCalories"),progressBar:$("#progressBar"),
+mealSections:$("#mealSections"),foodList:$("#foodList"),foodSearch:$("#foodSearch"),foodCategoryFilter:$("#foodCategoryFilter"),recipeList:$("#recipeList"),
+accountDialog:$("#accountDialog"),accountEmail:$("#accountEmail"),targetInput:$("#targetInput"),foodDialog:$("#foodDialog"),foodForm:$("#foodForm"),foodId:$("#foodId"),
+foodName:$("#foodName"),foodCategory:$("#foodCategory"),foodEntryType:$("#foodEntryType"),foodCalories:$("#foodCalories"),foodBaseAmount:$("#foodBaseAmount"),foodUnit:$("#foodUnit"),foodServing:$("#foodServing"),foodFavourite:$("#foodFavourite"),
+recipeDialog:$("#recipeDialog"),recipeForm:$("#recipeForm"),recipeId:$("#recipeId"),recipeName:$("#recipeName"),recipeServings:$("#recipeServings"),recipeImportedCalories:$("#recipeImportedCalories"),recipeCategories:$("#recipeCategories"),recipeSourceUrl:$("#recipeSourceUrl"),recipeInstructions:$("#recipeInstructions"),
+ingredientRows:$("#ingredientRows"),recipeTotalCalories:$("#recipeTotalCalories"),recipePerServing:$("#recipePerServing"),addDiaryDialog:$("#addDiaryDialog"),diaryEditId:$("#diaryEditId"),
+diaryMeal:$("#diaryMeal"),diaryItemSelect:$("#diaryItemSelect"),diaryQuantity:$("#diaryQuantity"),diaryUnitHint:$("#diaryUnitHint"),diaryCalculatedCalories:$("#diaryCalculatedCalories"),
+weightDialog:$("#weightDialog"),weightDate:$("#weightDate"),weightKg:$("#weightKg"),weightList:$("#weightList"),weightSummary:$("#weightSummary"),recipeImportFile:$("#recipeImportFile"),importDialog:$("#importDialog"),importSummary:$("#importSummary")};
 
-let session = null;
-let selectedDate = new Date();
-let profile = { daily_calorie_target: 2000 };
-let foods = [];
-let recipes = [];
-let recipeItems = [];
-let diary = [];
+async function init(){const {data:{session:s}}=await client.auth.getSession();session=s;client.auth.onAuthStateChange(async(_,s2)=>{session=s2;await handleSession()});await handleSession()}
+async function handleSession(){const yes=!!session?.user;E.authView.hidden=yes;E.appView.hidden=!yes;if(!yes)return;E.accountEmail.textContent=session.user.email||"";await ensureProfile();await refreshCore();await refreshDiary();await refreshWeights()}
+async function ensureProfile(){let {data,error}=await client.from("profiles").select("*").eq("user_id",session.user.id).maybeSingle();if(error)throw error;if(!data){const r=await client.from("profiles").insert({user_id:session.user.id}).select().single();if(r.error)throw r.error;data=r.data}profile=data}
+async function refreshCore(){const u=session.user.id;const [f,r,i]=await Promise.all([client.from("foods").select("*").eq("user_id",u),client.from("recipes").select("*").eq("user_id",u),client.from("recipe_items").select("*").eq("user_id",u)]);if(f.error||r.error||i.error)throw(f.error||r.error||i.error);foods=f.data||[];recipes=r.data||[];recipeItems=i.data||[];renderCategories();renderFoods();renderRecipes();renderSummary()}
+async function refreshDiary(){const r=await client.from("diary_entries").select("*").eq("user_id",session.user.id).eq("entry_date",dateKey(selectedDate)).order("created_at");if(r.error)throw r.error;diary=r.data||[];renderDiary();renderSummary();renderDate()}
+async function refreshWeights(){const r=await client.from("weight_entries").select("*").eq("user_id",session.user.id).order("entry_date",{ascending:false});if(r.error)throw r.error;weights=r.data||[];renderWeights()}
 
-const $ = s => document.querySelector(s);
-const fmt = n => Math.round(Number(n) || 0);
-const escapeHtml = (s="") => String(s).replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#039;"}[c]));
-const localDateKey = d => `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,"0")}-${String(d.getDate()).padStart(2,"0")}`;
+function renderDate(){E.selectedDateLabel.textContent=new Intl.DateTimeFormat("en-GB",{weekday:"short",day:"numeric",month:"long",year:"numeric"}).format(selectedDate)}
+function renderSummary(){const eaten=diary.reduce((s,x)=>s+Number(x.calories),0),target=Number(profile.daily_calorie_target||2000);E.targetCalories.textContent=fmt(target);E.eatenCalories.textContent=fmt(eaten);E.caloriesLeft.textContent=fmt(target-eaten);E.progressBar.style.width=`${Math.max(0,Math.min(100,target?eaten/target*100:0))}%`}
+function renderDiary(){const meals=["Breakfast","Lunch","Dinner","Snacks"];E.mealSections.innerHTML=meals.map(m=>{const rows=diary.filter(x=>x.meal_type===m),total=rows.reduce((s,x)=>s+Number(x.calories),0);return `<section class="meal-section"><div class="meal-heading"><h3>${m}</h3><span>${fmt(total)} kcal</span></div><div class="meal-card">${rows.length?rows.map(x=>`<div class="diary-row"><div><div class="name">${esc(x.item_name)}</div><div class="meta">${esc(x.quantity_label||"")}</div></div><div class="calories">${fmt(x.calories)} kcal</div><div><button class="small-btn" data-action="edit-diary" data-id="${x.id}">Edit</button><button class="remove-btn" data-action="remove-diary" data-id="${x.id}">✕</button></div></div>`).join(""):`<div class="empty">Nothing added.</div>`}</div></section>`}).join("")}
+function renderCategories(){const cats=[...new Set(foods.map(f=>f.category||"Other"))].sort();const cur=E.foodCategoryFilter.value;E.foodCategoryFilter.innerHTML=`<option value="">All categories</option>`+cats.map(c=>`<option ${c===cur?"selected":""}>${esc(c)}</option>`).join("")}
+function renderFoods(){const q=E.foodSearch.value.toLowerCase(),cat=E.foodCategoryFilter.value;const list=foods.filter(f=>(!q||f.name.toLowerCase().includes(q))&&(!cat||f.category===cat)).sort((a,b)=>(Number(b.favourite)-Number(a.favourite))||new Date(b.last_used_at||0)-new Date(a.last_used_at||0)||a.name.localeCompare(b.name));E.foodList.innerHTML=list.length?list.map(f=>`<div class="item-card"><div><div class="name">${f.favourite?'<span class="star">★</span> ':""}${esc(f.name)} <span class="badge">${esc(f.category||"Other")}</span></div><div class="meta">${fmt(f.calories)} kcal per ${f.base_amount} ${esc(f.unit)}${f.serving_description?" • "+esc(f.serving_description):""}</div><div class="item-actions"><button class="small-btn" data-action="edit-food" data-id="${f.id}">Edit</button><button class="small-btn" data-action="delete-food" data-id="${f.id}">Delete</button></div></div><div class="calories">${fmt(f.calories)} kcal</div></div>`).join(""):`<div class="empty">No foods found.</div>`}
+function recipeCalculatedCalories(id){return recipeItems.filter(x=>x.recipe_id===id).reduce((s,it)=>{const f=foods.find(x=>x.id===it.food_id);return f?s+Number(f.calories)*(Number(it.amount)/Number(f.base_amount)):s},0)}
+function recipePerServing(r){const calc=recipeCalculatedCalories(r.id);if(calc>0)return calc/Number(r.servings||1);return Number(r.imported_calories_per_serving||0)}
+function renderRecipes(){E.recipeList.innerHTML=recipes.length?recipes.slice().sort((a,b)=>a.name.localeCompare(b.name)).map(r=>{const calc=recipeCalculatedCalories(r.id),per=recipePerServing(r),unmatched=recipeItems.filter(x=>x.recipe_id===r.id&&!x.food_id).length;return `<div class="item-card"><div><div class="name">${esc(r.name)}</div><div class="meta">${r.servings} servings${(r.categories||[]).length?" • "+esc(r.categories.join(", ")):""}${unmatched?` • ${unmatched} unmatched ingredient(s)`:""}</div><div class="item-actions"><button class="small-btn" data-action="edit-recipe" data-id="${r.id}">Edit</button><button class="small-btn" data-action="delete-recipe" data-id="${r.id}">Delete</button></div></div><div class="calories">${per?fmt(per)+" kcal/serving":"Calories not set"}</div></div>`}).join(""):`<div class="empty">No recipes yet.</div>`}
+function renderWeights(){E.weightSummary.textContent=weights.length?`Latest: ${weights[0].weight_kg} kg on ${weights[0].entry_date}`:"No weights recorded.";E.weightList.innerHTML=weights.length?weights.map(w=>`<div class="item-card"><div class="name">${w.entry_date}</div><div class="calories">${w.weight_kg} kg <button class="small-btn" data-action="delete-weight" data-id="${w.id}">Delete</button></div></div>`).join(""):""}
 
-const els = {
-  authView: $("#authView"), appView: $("#appView"), authForm: $("#authForm"),
-  authEmail: $("#authEmail"), authPassword: $("#authPassword"), authMessage: $("#authMessage"),
-  selectedDateLabel: $("#selectedDateLabel"), caloriesLeft: $("#caloriesLeft"),
-  targetCalories: $("#targetCalories"), eatenCalories: $("#eatenCalories"), progressBar: $("#progressBar"),
-  mealSections: $("#mealSections"), foodList: $("#foodList"), foodSearch: $("#foodSearch"),
-  recipeList: $("#recipeList"), accountDialog: $("#accountDialog"), accountEmail: $("#accountEmail"),
-  targetInput: $("#targetInput"), foodDialog: $("#foodDialog"), foodForm: $("#foodForm"),
-  foodId: $("#foodId"), foodName: $("#foodName"), foodCalories: $("#foodCalories"),
-  foodBaseAmount: $("#foodBaseAmount"), foodUnit: $("#foodUnit"), foodServing: $("#foodServing"),
-  foodDialogTitle: $("#foodDialogTitle"), recipeDialog: $("#recipeDialog"), recipeForm: $("#recipeForm"),
-  recipeId: $("#recipeId"), recipeName: $("#recipeName"), recipeServings: $("#recipeServings"),
-  ingredientRows: $("#ingredientRows"), recipeTotalCalories: $("#recipeTotalCalories"),
-  recipePerServing: $("#recipePerServing"), addDiaryDialog: $("#addDiaryDialog"),
-  diaryMeal: $("#diaryMeal"), diaryItemSelect: $("#diaryItemSelect"), diaryQuantity: $("#diaryQuantity"),
-  diaryUnitHint: $("#diaryUnitHint"), diaryCalculatedCalories: $("#diaryCalculatedCalories")
-};
+E.authForm.onsubmit=async e=>{e.preventDefault();const r=await client.auth.signInWithPassword({email:E.authEmail.value.trim(),password:E.authPassword.value});E.authMessage.textContent=r.error?r.error.message:""}
+$("#signUpBtn").onclick=async()=>{const r=await client.auth.signUp({email:E.authEmail.value.trim(),password:E.authPassword.value});E.authMessage.textContent=r.error?r.error.message:"Account created."}
+$("#signOutBtn").onclick=async()=>{E.accountDialog.close();await client.auth.signOut()}
+$("#accountBtn").onclick=()=>{if(!session)return;E.targetInput.value=profile.daily_calorie_target;E.accountDialog.showModal()}
+$("#saveTargetBtn").onclick=async e=>{e.preventDefault();const v=Number(E.targetInput.value),r=await client.from("profiles").update({daily_calorie_target:v}).eq("user_id",session.user.id);if(r.error)return alert(r.error.message);profile.daily_calorie_target=v;renderSummary();E.accountDialog.close()}
+$("#prevDayBtn").onclick=async()=>{selectedDate.setDate(selectedDate.getDate()-1);await refreshDiary()}
+$("#nextDayBtn").onclick=async()=>{selectedDate.setDate(selectedDate.getDate()+1);await refreshDiary()}
+$("#todayBtn").onclick=async()=>{selectedDate=new Date();await refreshDiary()}
+document.querySelectorAll(".tab").forEach(b=>b.onclick=()=>{document.querySelectorAll(".tab").forEach(x=>x.classList.remove("active"));document.querySelectorAll(".tab-panel").forEach(x=>x.classList.remove("active"));b.classList.add("active");$("#"+b.dataset.tab).classList.add("active")})
 
-function validateConfig() {
-  return cfg.SUPABASE_URL && cfg.SUPABASE_PUBLISHABLE_KEY &&
-    !cfg.SUPABASE_URL.includes("YOUR_PROJECT") &&
-    !cfg.SUPABASE_PUBLISHABLE_KEY.includes("YOUR_SUPABASE");
-}
+E.foodEntryType.onchange=()=>{if(E.foodEntryType.value==="per100"){E.foodBaseAmount.value=100;if(!["g","ml"].includes(E.foodUnit.value))E.foodUnit.value="g"}else{E.foodBaseAmount.value=1;if(["g","ml"].includes(E.foodUnit.value))E.foodUnit.value="item"}}
+$("#addFoodBtn").onclick=()=>{E.foodForm.reset();E.foodId.value="";E.foodBaseAmount.value=100;E.foodDialog.showModal()}
+E.foodForm.onsubmit=async e=>{if(e.submitter?.value!=="save")return;const p={user_id:session.user.id,name:E.foodName.value.trim(),category:E.foodCategory.value,favourite:E.foodFavourite.checked,calories:Number(E.foodCalories.value),base_amount:Number(E.foodBaseAmount.value),unit:E.foodUnit.value,serving_description:E.foodServing.value||null};const r=E.foodId.value?await client.from("foods").update(p).eq("id",E.foodId.value):await client.from("foods").insert(p);if(r.error){e.preventDefault();return alert(r.error.message)}await refreshCore()}
+E.foodSearch.oninput=renderFoods;E.foodCategoryFilter.onchange=renderFoods
+E.foodList.onclick=async e=>{const b=e.target.closest("button");if(!b)return;const f=foods.find(x=>x.id===b.dataset.id);if(!f)return;if(b.dataset.action==="edit-food"){E.foodId.value=f.id;E.foodName.value=f.name;E.foodCategory.value=f.category||"Other";E.foodFavourite.checked=f.favourite;E.foodCalories.value=f.calories;E.foodBaseAmount.value=f.base_amount;E.foodUnit.value=f.unit;E.foodServing.value=f.serving_description||"";E.foodEntryType.value=(Number(f.base_amount)===100&&["g","ml"].includes(f.unit))?"per100":"perunit";E.foodDialog.showModal()}if(b.dataset.action==="delete-food"&&confirm(`Delete ${f.name}?`)){const r=await client.from("foods").delete().eq("id",f.id);if(r.error)return alert(r.error.message);await refreshCore()}}
 
-async function init() {
-  if (!validateConfig()) {
-    els.authMessage.textContent = "Configure Supabase in config.js before using the app.";
-    return;
+function ingredientRow(foodId="",amount=1,raw=""){const d=document.createElement("div");d.className="ingredient-row";d.dataset.raw=raw;d.innerHTML=`<label>Food<select class="ingredient-food"><option value="">Unmatched / text only</option>${foods.map(f=>`<option value="${f.id}" ${f.id===foodId?"selected":""}>${esc(f.name)} (${f.unit})</option>`).join("")}</select></label><label>Amount<input class="ingredient-amount" type="number" min="0.01" step="0.01" value="${amount}"></label><button type="button" class="small-btn">✕</button>${raw?`<div class="raw-ing">${esc(raw)}</div>`:""}`;d.querySelectorAll("select,input").forEach(x=>x.oninput=updateRecipeTotals);d.querySelector("button").onclick=()=>{d.remove();updateRecipeTotals()};return d}
+function updateRecipeTotals(){let t=0;[...E.ingredientRows.querySelectorAll(".ingredient-row")].forEach(row=>{const f=foods.find(x=>x.id===row.querySelector(".ingredient-food").value);if(f)t+=Number(f.calories)*(Number(row.querySelector(".ingredient-amount").value)/Number(f.base_amount))});E.recipeTotalCalories.textContent=fmt(t);E.recipePerServing.textContent=t?fmt(t/(Number(E.recipeServings.value)||1)):fmt(Number(E.recipeImportedCalories.value||0))}
+$("#addIngredientRowBtn").onclick=()=>{E.ingredientRows.appendChild(ingredientRow(foods[0]?.id||"",foods[0]?.base_amount||1));updateRecipeTotals()}
+$("#addRecipeBtn").onclick=()=>{E.recipeForm.reset();E.recipeId.value="";E.recipeServings.value=1;E.ingredientRows.innerHTML="";updateRecipeTotals();E.recipeDialog.showModal()}
+E.recipeServings.oninput=updateRecipeTotals;E.recipeImportedCalories.oninput=updateRecipeTotals
+E.recipeList.onclick=async e=>{const b=e.target.closest("button");if(!b)return;const r=recipes.find(x=>x.id===b.dataset.id);if(!r)return;if(b.dataset.action==="edit-recipe"){E.recipeId.value=r.id;E.recipeName.value=r.name;E.recipeServings.value=r.servings;E.recipeImportedCalories.value=r.imported_calories_per_serving||"";E.recipeCategories.value=(r.categories||[]).join(", ");E.recipeSourceUrl.value=r.source_url||"";E.recipeInstructions.value=r.instructions||"";E.ingredientRows.innerHTML="";recipeItems.filter(x=>x.recipe_id===r.id).forEach(it=>E.ingredientRows.appendChild(ingredientRow(it.food_id||"",it.amount,it.raw_text||"")));updateRecipeTotals();E.recipeDialog.showModal()}if(b.dataset.action==="delete-recipe"&&confirm(`Delete ${r.name}?`)){const x=await client.from("recipes").delete().eq("id",r.id);if(x.error)return alert(x.error.message);await refreshCore()}}
+E.recipeForm.onsubmit=async e=>{if(e.submitter?.value!=="save")return;e.preventDefault();let rid=E.recipeId.value;const p={user_id:session.user.id,name:E.recipeName.value.trim(),servings:Number(E.recipeServings.value),imported_calories_per_serving:E.recipeImportedCalories.value?Number(E.recipeImportedCalories.value):null,categories:E.recipeCategories.value.split(",").map(x=>x.trim()).filter(Boolean),source_url:E.recipeSourceUrl.value||null,instructions:E.recipeInstructions.value||null};if(rid){let r=await client.from("recipes").update(p).eq("id",rid);if(r.error)return alert(r.error.message);r=await client.from("recipe_items").delete().eq("recipe_id",rid);if(r.error)return alert(r.error.message)}else{const r=await client.from("recipes").insert(p).select().single();if(r.error)return alert(r.error.message);rid=r.data.id}const rows=[...E.ingredientRows.querySelectorAll(".ingredient-row")].map(row=>({user_id:session.user.id,recipe_id:rid,food_id:row.querySelector(".ingredient-food").value||null,amount:Number(row.querySelector(".ingredient-amount").value),raw_text:row.dataset.raw||null}));if(rows.length){const r=await client.from("recipe_items").insert(rows);if(r.error)return alert(r.error.message)}E.recipeDialog.close();await refreshCore()}
+
+function diaryOptions(){const recent=[...foods].sort((a,b)=>new Date(b.last_used_at||0)-new Date(a.last_used_at||0));const opts=[...recent.map(f=>({kind:"food",id:f.id,name:f.name,cal:Number(f.calories),base:Number(f.base_amount),unit:f.unit})),...recipes.map(r=>({kind:"recipe",id:r.id,name:r.name,cal:recipePerServing(r),base:1,unit:"serving"})).filter(x=>x.cal>0)];E.diaryItemSelect.innerHTML=opts.map(o=>`<option value="${o.kind}:${o.id}" data-cal="${o.cal}" data-base="${o.base}" data-unit="${o.unit}">${esc(o.name)} — ${fmt(o.cal)} kcal</option>`).join("");updateDiaryCalc()}
+function updateDiaryCalc(){const o=E.diaryItemSelect.selectedOptions[0];if(!o)return;const q=Number(E.diaryQuantity.value)||0;E.diaryCalculatedCalories.textContent=fmt(Number(o.dataset.cal)*(q/Number(o.dataset.base)));E.diaryUnitHint.textContent=`Enter quantity in ${o.dataset.unit}.`}
+$("#addDiaryBtn").onclick=()=>{E.diaryEditId.value="";$("#diaryDialogTitle").textContent="Add to diary";diaryOptions();E.diaryQuantity.value=1;updateDiaryCalc();E.addDiaryDialog.showModal()}
+E.diaryItemSelect.onchange=()=>{const o=E.diaryItemSelect.selectedOptions[0];E.diaryQuantity.value=["g","ml"].includes(o?.dataset.unit)?o.dataset.base:1;updateDiaryCalc()};E.diaryQuantity.oninput=updateDiaryCalc
+$("#addDiaryForm").onsubmit=async e=>{if(e.submitter?.value!=="add")return;e.preventDefault();const [kind,id]=E.diaryItemSelect.value.split(":"),q=Number(E.diaryQuantity.value);let name,cal,label;if(kind==="food"){const f=foods.find(x=>x.id===id);name=f.name;cal=Number(f.calories)*(q/Number(f.base_amount));label=`${q} ${f.unit}`;await client.from("foods").update({last_used_at:new Date().toISOString()}).eq("id",f.id)}else{const r=recipes.find(x=>x.id===id);name=r.name;cal=recipePerServing(r)*q;label=`${q} serving${q===1?"":"s"}`}const p={user_id:session.user.id,entry_date:dateKey(selectedDate),meal_type:E.diaryMeal.value,item_type:kind,item_ref_id:id,item_name:name,quantity:q,quantity_label:label,calories:cal};const r=E.diaryEditId.value?await client.from("diary_entries").update(p).eq("id",E.diaryEditId.value):await client.from("diary_entries").insert(p);if(r.error)return alert(r.error.message);E.addDiaryDialog.close();await refreshCore();await refreshDiary()}
+E.mealSections.onclick=async e=>{const b=e.target.closest("button");if(!b)return;const x=diary.find(d=>d.id===b.dataset.id);if(b.dataset.action==="remove-diary"){const r=await client.from("diary_entries").delete().eq("id",b.dataset.id);if(r.error)return alert(r.error.message);await refreshDiary()}if(b.dataset.action==="edit-diary"&&x){E.diaryEditId.value=x.id;$("#diaryDialogTitle").textContent="Edit diary entry";diaryOptions();E.diaryMeal.value=x.meal_type;E.diaryItemSelect.value=`${x.item_type}:${x.item_ref_id}`;E.diaryQuantity.value=x.quantity;updateDiaryCalc();E.addDiaryDialog.showModal()}}
+$("#copyPrevDayBtn").onclick=async()=>{const d=new Date(selectedDate);d.setDate(d.getDate()-1);const r=await client.from("diary_entries").select("*").eq("user_id",session.user.id).eq("entry_date",dateKey(d));if(r.error)return alert(r.error.message);if(!r.data.length)return alert("Previous day has no entries.");if(!confirm(`Copy ${r.data.length} entries from the previous day?`))return;const rows=r.data.map(x=>({user_id:session.user.id,entry_date:dateKey(selectedDate),meal_type:x.meal_type,item_type:x.item_type,item_ref_id:x.item_ref_id,item_name:x.item_name,quantity:x.quantity,quantity_label:x.quantity_label,calories:x.calories}));const ins=await client.from("diary_entries").insert(rows);if(ins.error)return alert(ins.error.message);await refreshDiary()}
+
+$("#addWeightBtn").onclick=()=>{E.weightDate.value=dateKey(new Date());E.weightKg.value="";E.weightDialog.showModal()}
+$("#weightForm").onsubmit=async e=>{if(e.submitter?.value!=="save")return;e.preventDefault();const r=await client.from("weight_entries").upsert({user_id:session.user.id,entry_date:E.weightDate.value,weight_kg:Number(E.weightKg.value)},{onConflict:"user_id,entry_date"});if(r.error)return alert(r.error.message);E.weightDialog.close();await refreshWeights()}
+E.weightList.onclick=async e=>{const b=e.target.closest("button");if(!b)return;const r=await client.from("weight_entries").delete().eq("id",b.dataset.id);if(r.error)return alert(r.error.message);await refreshWeights()}
+
+$("#exportDataBtn").onclick=async()=>{const [d,w]=await Promise.all([client.from("diary_entries").select("*").eq("user_id",session.user.id),client.from("weight_entries").select("*").eq("user_id",session.user.id)]);const backup={exportedAt:new Date().toISOString(),profile,foods,recipes,recipeItems,diaryEntries:d.data||[],weightEntries:w.data||[]};const blob=new Blob([JSON.stringify(backup,null,2)],{type:"application/json"}),a=document.createElement("a");a.href=URL.createObjectURL(blob);a.download=`calorie-tracker-backup-${dateKey(new Date())}.json`;a.click();URL.revokeObjectURL(a.href)}
+
+function extractCalories(r){
+  const texts=[r.description||"",...(r.comment||[]).map(c=>c?.text||"")];
+  for(const t of texts){
+    let m=String(t).match(/(?:cals?|calories?|kcal)\s*[:\-]?\s*(\d+(?:\.\d+)?)/i);
+    if(m)return Number(m[1]);
+    m=String(t).match(/(\d+(?:\.\d+)?)\s*(?:kcal|calories)\b/i);
+    if(m)return Number(m[1]);
   }
-  const { data: { session: s } } = await client.auth.getSession();
-  session = s;
-  client.auth.onAuthStateChange(async (_event, s2) => {
-    session = s2;
-    await handleSession();
-  });
-  await handleSession();
+  return null;
+}
+function parseYield(y){
+  const m=String(y||"").match(/(\d+(?:\.\d+)?)/);
+  return m?Number(m[1]):1;
+}
+function instructionText(arr){
+  if(!Array.isArray(arr))return String(arr||"");
+  return arr.map(x=>typeof x==="string"?x:(x?.text||"")).filter(Boolean).join("\n");
+}
+function authorNotes(r){
+  return (r.comment||[]).filter(c=>c?.name==="Author Notes").map(c=>c.text||"").join("\n").trim();
+}
+function likelyIngredientAmount(raw, matchedFood){
+  if(!matchedFood)return 1;
+  const text=String(raw).toLowerCase().replace(/,/g,"");
+  let m;
+  if(matchedFood.unit==="g" && (m=text.match(/(\d+(?:\.\d+)?)\s*g\b/))) return Number(m[1]);
+  if(matchedFood.unit==="ml" && (m=text.match(/(\d+(?:\.\d+)?)\s*ml\b/))) return Number(m[1]);
+  return matchedFood.base_amount || 1;
+}
+function matchFood(raw){
+  const n=String(raw).toLowerCase();
+  return foods.slice().sort((a,b)=>b.name.length-a.name.length).find(f=>f.name.length>=3 && n.includes(f.name.toLowerCase()))||null;
 }
 
-async function handleSession() {
-  const signedIn = !!session?.user;
-  els.authView.hidden = signedIn;
-  els.appView.hidden = !signedIn;
-  if (!signedIn) return;
-  els.accountEmail.textContent = session.user.email || "";
-  await ensureProfile();
-  await refreshCoreData();
-  await refreshDiary();
+$("#importRecipesBtn").onclick=()=>E.recipeImportFile.click()
+E.recipeImportFile.onchange=async()=>{
+ const file=E.recipeImportFile.files[0];if(!file)return;
+ try{
+   const obj=JSON.parse(await file.text());
+   const recs=Array.isArray(obj?.recipes)?obj.recipes:[];
+   if(!recs.length)throw new Error("No RecipeSage recipes array was found.");
+   let imported=0,skipped=0,ingredientCount=0,matchedCount=0,calorieCount=0;
+   for(const r of recs){
+     if(r["@type"]!=="Recipe")continue;
+     const ext=r.identifier||null;
+     if(ext){
+       const existing=recipes.find(x=>x.external_identifier===ext);
+       if(existing){skipped++;continue;}
+     }
+     const importedCals=extractCalories(r); if(importedCals!==null)calorieCount++;
+     const payload={
+       user_id:session.user.id,
+       name:r.name||"Imported recipe",
+       servings:parseYield(r.recipeYield),
+       instructions:instructionText(r.recipeInstructions)||null,
+       source_url:r.isBasedOn||null,
+       imported_from:"RecipeSage JSON",
+       external_identifier:ext,
+       categories:(r.recipeCategory||[]).filter(c=>!/^import on /i.test(c)),
+       description:r.description||null,
+       author_notes:authorNotes(r)||null,
+       imported_calories_per_serving:importedCals,
+       image_url:Array.isArray(r.image)?(r.image[0]||null):(r.image||null)
+     };
+     const ins=await client.from("recipes").insert(payload).select().single();
+     if(ins.error)throw ins.error;
+     const rows=[];
+     for(const raw of (r.recipeIngredient||[])){
+       const text=String(raw).trim();
+       // Preserve headings such as "For the sauce:" as unmatched text.
+       const heading=/:\s*$/.test(text) || /^(for |to serve|sauce|marinade|seasoning)/i.test(text);
+       const f=heading?null:matchFood(text);
+       if(f)matchedCount++;
+       rows.push({user_id:session.user.id,recipe_id:ins.data.id,food_id:f?.id||null,amount:likelyIngredientAmount(text,f),raw_text:text});
+       ingredientCount++;
+     }
+     if(rows.length){
+       const ir=await client.from("recipe_items").insert(rows);
+       if(ir.error)throw ir.error;
+     }
+     imported++;
+   }
+   E.importSummary.innerHTML=`<p><strong>${imported}</strong> recipes imported.</p>
+   <p><strong>${skipped}</strong> already-imported recipes skipped.</p>
+   <p><strong>${ingredientCount}</strong> ingredient lines preserved; <strong>${matchedCount}</strong> automatically matched to foods already in your calorie database.</p>
+   <p><strong>${calorieCount}</strong> recipes had a calorie value detected in RecipeSage description/notes.</p>
+   <p>Imported recipes without calorie information remain available to edit. Their calorie totals will become usable as ingredients are matched to foods.</p>`;
+   E.importDialog.showModal();await refreshCore();
+ }catch(err){alert("Import failed: "+err.message)}
+ finally{E.recipeImportFile.value=""}
 }
 
-async function ensureProfile() {
-  const uid = session.user.id;
-  let { data: p, error } = await client.from("profiles").select("*").eq("user_id", uid).maybeSingle();
-  if (error) throw error;
-  if (!p) {
-    const ins = await client.from("profiles").insert({ user_id: uid, daily_calorie_target: 2000 }).select().single();
-    if (ins.error) throw ins.error;
-    p = ins.data;
-  }
-  profile = p;
-}
-
-async function refreshCoreData() {
-  const uid = session.user.id;
-  const [fres, rres, ires] = await Promise.all([
-    client.from("foods").select("*").eq("user_id", uid).order("name"),
-    client.from("recipes").select("*").eq("user_id", uid).order("name"),
-    client.from("recipe_items").select("*").eq("user_id", uid)
-  ]);
-  if (fres.error) throw fres.error; if (rres.error) throw rres.error; if (ires.error) throw ires.error;
-  foods = fres.data || []; recipes = rres.data || []; recipeItems = ires.data || [];
-  renderFoods(); renderRecipes(); renderSummary();
-}
-
-async function refreshDiary() {
-  if (!session) return;
-  const { data, error } = await client.from("diary_entries")
-    .select("*").eq("user_id", session.user.id).eq("entry_date", localDateKey(selectedDate))
-    .order("created_at");
-  if (error) throw error;
-  diary = data || [];
-  renderDiary(); renderSummary(); renderDate();
-}
-
-function renderDate() {
-  els.selectedDateLabel.textContent = new Intl.DateTimeFormat("en-GB",{weekday:"short",day:"numeric",month:"long",year:"numeric"}).format(selectedDate);
-}
-function eatenToday(){ return diary.reduce((s,x)=>s+Number(x.calories),0); }
-function renderSummary() {
-  const eaten = eatenToday(), target = Number(profile.daily_calorie_target || 2000), left = target-eaten;
-  els.targetCalories.textContent = fmt(target); els.eatenCalories.textContent = fmt(eaten); els.caloriesLeft.textContent = fmt(left);
-  els.progressBar.style.width = `${Math.max(0,Math.min(100,target ? eaten/target*100 : 0))}%`;
-}
-function renderDiary() {
-  const meals = ["Breakfast","Lunch","Dinner","Snacks"];
-  els.mealSections.innerHTML = meals.map(meal=>{
-    const rows = diary.filter(x=>x.meal_type===meal);
-    const total = rows.reduce((s,x)=>s+Number(x.calories),0);
-    return `<section class="meal-section">
-      <div class="meal-heading"><h3>${meal}</h3><span class="meal-total">${fmt(total)} kcal</span></div>
-      <div class="meal-card">${rows.length ? rows.map(x=>`
-        <div class="diary-row">
-          <div><div class="name">${escapeHtml(x.item_name)}</div><div class="meta">${escapeHtml(x.quantity_label || "")}</div></div>
-          <div class="calories">${fmt(x.calories)} kcal</div>
-          <button class="remove-btn" data-action="remove-diary" data-id="${x.id}" aria-label="Remove">✕</button>
-        </div>`).join("") : `<div class="empty">Nothing added.</div>`}</div>
-    </section>`;
-  }).join("");
-}
-function renderFoods() {
-  const q = els.foodSearch.value.trim().toLowerCase();
-  const list = foods.filter(x=>x.name.toLowerCase().includes(q));
-  els.foodList.innerHTML = list.length ? list.map(f=>`
-    <div class="item-card">
-      <div><div class="name">${escapeHtml(f.name)}</div>
-      <div class="meta">${fmt(f.calories)} kcal per ${f.base_amount} ${escapeHtml(f.unit)}${f.serving_description ? " • "+escapeHtml(f.serving_description):""}</div>
-      <div class="item-actions"><button class="small-btn" data-action="edit-food" data-id="${f.id}">Edit</button><button class="small-btn" data-action="delete-food" data-id="${f.id}">Delete</button></div></div>
-      <div class="calories">${fmt(f.calories)} kcal</div>
-    </div>`).join("") : `<div class="empty">No foods found.</div>`;
-}
-function recipeCalories(recipeId) {
-  const items = recipeItems.filter(x=>x.recipe_id===recipeId);
-  return items.reduce((sum,it)=>{
-    const f=foods.find(x=>x.id===it.food_id); if(!f) return sum;
-    return sum + Number(f.calories) * (Number(it.amount)/Number(f.base_amount));
-  },0);
-}
-function renderRecipes() {
-  els.recipeList.innerHTML = recipes.length ? recipes.map(r=>{
-    const total=recipeCalories(r.id), per=total/Number(r.servings||1);
-    return `<div class="item-card"><div><div class="name">${escapeHtml(r.name)}</div>
-      <div class="meta">${r.servings} servings • ${fmt(total)} kcal total</div>
-      <div class="item-actions"><button class="small-btn" data-action="edit-recipe" data-id="${r.id}">Edit</button><button class="small-btn" data-action="delete-recipe" data-id="${r.id}">Delete</button></div></div>
-      <div class="calories">${fmt(per)} kcal/serving</div></div>`;
-  }).join("") : `<div class="empty">No recipes yet.</div>`;
-}
-
-els.authForm.addEventListener("submit", async e=>{
-  e.preventDefault(); els.authMessage.textContent="Signing in...";
-  const { error } = await client.auth.signInWithPassword({email:els.authEmail.value.trim(),password:els.authPassword.value});
-  els.authMessage.textContent = error ? error.message : "";
-});
-$("#signUpBtn").onclick = async ()=>{
-  els.authMessage.textContent="Creating account...";
-  const { error } = await client.auth.signUp({email:els.authEmail.value.trim(),password:els.authPassword.value});
-  els.authMessage.textContent = error ? error.message : "Account created. Check your email if confirmation is enabled.";
-};
-$("#signOutBtn").onclick = async ()=>{ els.accountDialog.close(); await client.auth.signOut(); };
-
-$("#accountBtn").onclick=()=>{
-  if(!session) return;
-  els.targetInput.value=profile.daily_calorie_target || 2000; els.accountDialog.showModal();
-};
-$("#saveTargetBtn").onclick=async e=>{
-  e.preventDefault();
-  const val=Number(els.targetInput.value);
-  const { error }=await client.from("profiles").update({daily_calorie_target:val}).eq("user_id",session.user.id);
-  if(error) return alert(error.message);
-  profile.daily_calorie_target=val; renderSummary(); els.accountDialog.close();
-};
-
-$("#prevDayBtn").onclick=async()=>{selectedDate.setDate(selectedDate.getDate()-1); await refreshDiary();}
-$("#nextDayBtn").onclick=async()=>{selectedDate.setDate(selectedDate.getDate()+1); await refreshDiary();}
-$("#todayBtn").onclick=async()=>{selectedDate=new Date(); await refreshDiary();}
-
-document.querySelectorAll(".tab").forEach(btn=>btn.addEventListener("click",()=>{
-  document.querySelectorAll(".tab").forEach(x=>x.classList.remove("active"));
-  document.querySelectorAll(".tab-panel").forEach(x=>x.classList.remove("active"));
-  btn.classList.add("active"); $("#"+btn.dataset.tab).classList.add("active");
-}));
-
-$("#addFoodBtn").onclick=()=>{
-  els.foodDialogTitle.textContent="New food"; els.foodForm.reset(); els.foodId.value=""; els.foodBaseAmount.value=100; els.foodDialog.showModal();
-};
-els.foodForm.addEventListener("submit",async e=>{
-  if(e.submitter?.value!=="save") return;
-  const payload={user_id:session.user.id,name:els.foodName.value.trim(),calories:Number(els.foodCalories.value),base_amount:Number(els.foodBaseAmount.value),unit:els.foodUnit.value,serving_description:els.foodServing.value.trim()||null};
-  let res;
-  if(els.foodId.value) res=await client.from("foods").update(payload).eq("id",els.foodId.value);
-  else res=await client.from("foods").insert(payload);
-  if(res.error){e.preventDefault();return alert(res.error.message);}
-  await refreshCoreData();
-});
-els.foodSearch.addEventListener("input",renderFoods);
-els.foodList.addEventListener("click",async e=>{
-  const b=e.target.closest("button"); if(!b)return; const f=foods.find(x=>x.id===b.dataset.id); if(!f)return;
-  if(b.dataset.action==="edit-food"){els.foodDialogTitle.textContent="Edit food";els.foodId.value=f.id;els.foodName.value=f.name;els.foodCalories.value=f.calories;els.foodBaseAmount.value=f.base_amount;els.foodUnit.value=f.unit;els.foodServing.value=f.serving_description||"";els.foodDialog.showModal();}
-  if(b.dataset.action==="delete-food" && confirm(`Delete ${f.name}?`)){const {error}=await client.from("foods").delete().eq("id",f.id);if(error)return alert(error.message);await refreshCoreData();}
-});
-
-function ingredientRow(foodId="",amount=100){
-  const div=document.createElement("div");div.className="ingredient-row";
-  div.innerHTML=`<label>Food<select class="ingredient-food">${foods.map(f=>`<option value="${f.id}" ${f.id===foodId?"selected":""}>${escapeHtml(f.name)} (${f.unit})</option>`).join("")}</select></label>
-    <label>Amount<input class="ingredient-amount" type="number" min="0.01" step="0.01" value="${amount}"></label>
-    <button type="button" class="small-btn remove-ingredient">✕</button>`;
-  div.querySelectorAll("select,input").forEach(x=>x.addEventListener("input",updateRecipeTotals));
-  div.querySelector(".remove-ingredient").onclick=()=>{div.remove();updateRecipeTotals();};
-  return div;
-}
-function updateRecipeTotals(){
-  let total=0;
-  [...els.ingredientRows.querySelectorAll(".ingredient-row")].forEach(row=>{
-    const f=foods.find(x=>x.id===row.querySelector(".ingredient-food").value);
-    const amt=Number(row.querySelector(".ingredient-amount").value)||0;
-    if(f) total+=Number(f.calories)*(amt/Number(f.base_amount));
-  });
-  const servings=Number(els.recipeServings.value)||1;
-  els.recipeTotalCalories.textContent=fmt(total);els.recipePerServing.textContent=fmt(total/servings);
-}
-$("#addIngredientRowBtn").onclick=()=>{if(!foods.length)return alert("Add some foods first.");els.ingredientRows.appendChild(ingredientRow(foods[0].id,100));updateRecipeTotals();}
-els.recipeServings.addEventListener("input",updateRecipeTotals);
-$("#addRecipeBtn").onclick=()=>{
-  if(!foods.length)return alert("Add at least one food before creating a recipe.");
-  els.recipeDialogTitle.textContent="New recipe";els.recipeForm.reset();els.recipeId.value="";els.recipeServings.value=1;els.ingredientRows.innerHTML="";els.ingredientRows.appendChild(ingredientRow(foods[0].id,100));updateRecipeTotals();els.recipeDialog.showModal();
-};
-els.recipeList.addEventListener("click",async e=>{
-  const b=e.target.closest("button");if(!b)return;const r=recipes.find(x=>x.id===b.dataset.id);if(!r)return;
-  if(b.dataset.action==="edit-recipe"){els.recipeDialogTitle.textContent="Edit recipe";els.recipeId.value=r.id;els.recipeName.value=r.name;els.recipeServings.value=r.servings;els.ingredientRows.innerHTML="";recipeItems.filter(x=>x.recipe_id===r.id).forEach(it=>els.ingredientRows.appendChild(ingredientRow(it.food_id,it.amount)));updateRecipeTotals();els.recipeDialog.showModal();}
-  if(b.dataset.action==="delete-recipe" && confirm(`Delete ${r.name}?`)){const {error}=await client.from("recipes").delete().eq("id",r.id);if(error)return alert(error.message);await refreshCoreData();}
-});
-els.recipeForm.addEventListener("submit",async e=>{
-  if(e.submitter?.value!=="save")return;
-  e.preventDefault();
-  const name=els.recipeName.value.trim(), servings=Number(els.recipeServings.value);
-  let rid=els.recipeId.value;
-  if(rid){
-    const {error}=await client.from("recipes").update({name,servings}).eq("id",rid);if(error)return alert(error.message);
-    const del=await client.from("recipe_items").delete().eq("recipe_id",rid);if(del.error)return alert(del.error.message);
-  }else{
-    const ins=await client.from("recipes").insert({user_id:session.user.id,name,servings}).select().single();if(ins.error)return alert(ins.error.message);rid=ins.data.id;
-  }
-  const rows=[...els.ingredientRows.querySelectorAll(".ingredient-row")].map(row=>({user_id:session.user.id,recipe_id:rid,food_id:row.querySelector(".ingredient-food").value,amount:Number(row.querySelector(".ingredient-amount").value)}));
-  if(rows.length){const insItems=await client.from("recipe_items").insert(rows);if(insItems.error)return alert(insItems.error.message);}
-  els.recipeDialog.close();await refreshCoreData();
-});
-
-function buildDiaryOptions(){
-  const opts=[
-    ...foods.map(f=>({kind:"food",id:f.id,name:f.name,calories:Number(f.calories),baseAmount:Number(f.base_amount),unit:f.unit})),
-    ...recipes.map(r=>({kind:"recipe",id:r.id,name:r.name,calories:recipeCalories(r.id)/Number(r.servings||1),baseAmount:1,unit:"serving"}))
-  ].sort((a,b)=>a.name.localeCompare(b.name));
-  els.diaryItemSelect.innerHTML=opts.map(o=>`<option value="${o.kind}:${o.id}" data-calories="${o.calories}" data-base="${o.baseAmount}" data-unit="${o.unit}">${escapeHtml(o.name)} — ${fmt(o.calories)} kcal per ${o.baseAmount} ${o.unit}</option>`).join("");
-  updateDiaryCalc();
-}
-function updateDiaryCalc(){
-  const opt=els.diaryItemSelect.selectedOptions[0];if(!opt)return;
-  const qty=Number(els.diaryQuantity.value)||0, calories=Number(opt.dataset.calories)||0, base=Number(opt.dataset.base)||1, unit=opt.dataset.unit;
-  els.diaryCalculatedCalories.textContent=fmt(calories*(qty/base));els.diaryUnitHint.textContent=`Enter quantity in ${unit}.`;
-}
-$("#addDiaryBtn").onclick=()=>{buildDiaryOptions();if(!els.diaryItemSelect.options.length)return alert("Add a food or recipe first.");els.diaryQuantity.value=1;updateDiaryCalc();els.addDiaryDialog.showModal();}
-els.diaryItemSelect.addEventListener("change",()=>{const opt=els.diaryItemSelect.selectedOptions[0];els.diaryQuantity.value=opt?.dataset.unit==="g"||opt?.dataset.unit==="ml" ? opt.dataset.base : 1;updateDiaryCalc();});
-els.diaryQuantity.addEventListener("input",updateDiaryCalc);
-$("#addDiaryForm").addEventListener("submit",async e=>{
-  if(e.submitter?.value!=="add")return;e.preventDefault();
-  const [kind,id]=els.diaryItemSelect.value.split(":");const qty=Number(els.diaryQuantity.value);let name,calories,label;
-  if(kind==="food"){const f=foods.find(x=>x.id===id);name=f.name;calories=Number(f.calories)*(qty/Number(f.base_amount));label=`${qty} ${f.unit}`;}
-  else{const r=recipes.find(x=>x.id===id);name=r.name;calories=(recipeCalories(r.id)/Number(r.servings||1))*qty;label=`${qty} serving${qty===1?"":"s"}`;}
-  const {error}=await client.from("diary_entries").insert({user_id:session.user.id,entry_date:localDateKey(selectedDate),meal_type:els.diaryMeal.value,item_type:kind,item_ref_id:id,item_name:name,quantity:qty,quantity_label:label,calories});
-  if(error)return alert(error.message);els.addDiaryDialog.close();await refreshDiary();
-});
-els.mealSections.addEventListener("click",async e=>{
-  const b=e.target.closest("button");if(!b||b.dataset.action!=="remove-diary")return;
-  const {error}=await client.from("diary_entries").delete().eq("id",b.dataset.id);if(error)return alert(error.message);await refreshDiary();
-});
-
-init().catch(err=>{console.error(err);alert(err.message);});
+init().catch(err=>{console.error(err);alert(err.message)})

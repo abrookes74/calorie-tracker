@@ -1,90 +1,33 @@
-# Calorie Tracker v2
+# Calorie Tracker v3
 
-A phone-first multi-device Progressive Web App using Supabase. Rather cool.
+## New in v3
+- Food categories
+- Favourite foods
+- Recent-food ordering
+- Per-100g/ml and per-item/serving entry
+- Edit diary entries
+- Copy previous day
+- Weight tracking
+- JSON backup export
+- RecipeSage JSON import tailored to the RecipeSage export structure
+- Recipe categories/tags, source URLs, descriptions, author notes and instructions
+- Duplicate protection using RecipeSage recipe identifiers
+- Preservation of unmatched ingredient text
+- Automatic matching of imported ingredients against foods already in the calorie database
+- Extraction of calorie values when RecipeSage descriptions/notes contain Cals/Calories/kcal
 
-## Included
+## Upgrade from v2
+1. Run `supabase-v3-migration.sql` in the Supabase SQL Editor.
+2. Keep your current working `config.js` from v2. Do NOT replace it with the placeholder unless you re-enter your Project URL and Publishable Key.
+3. Replace the other web files in the GitHub Pages repository with the v3 files.
+4. Commit to `main` and wait for the Pages deployment.
 
-- Email/password sign-in
-- Sync across phones and laptops
-- Daily calorie target stored per user
-- Personal food database
-- Foods can be stored per g, ml, item or serving
-- Ingredient-based recipes
-- Recipe calories calculated automatically
-- Breakfast, Lunch, Dinner and Snacks
-- Previous/next-day diary navigation
-- Calories eaten and calories remaining
-- GitHub Pages compatible
-- Basic PWA/offline shell support
-- Supabase Row Level Security so users only access their own data
+## RecipeSage import
+Open Recipes -> Import RecipeSage JSON and select the RecipeSage export file.
 
-## 1. Create a Supabase project
+The import can safely be attempted again: recipes with the same RecipeSage `identifier` are skipped.
 
-Create a project at Supabase.
+RecipeSage ingredient lines are human-readable. The app preserves every line. Where an ingredient contains the name of an existing calorie food, the importer attempts to match it and recognizes explicit grams or ml. Other measurements (tbsp, tsp, cups, "1 onion", etc.) remain reviewable because reliable calorie conversion requires food-specific densities/weights.
 
-In the SQL Editor, run:
-
-    supabase-schema.sql
-
-## 2. Configure authentication
-
-In Supabase:
-Authentication -> Providers -> Email
-
-Enable Email authentication.
-
-For easiest testing you can temporarily disable email confirmation. For normal use, keeping email confirmation enabled is recommended.
-
-## 3. Configure the app
-
-Open `config.js` and replace:
-
-    https://YOUR_PROJECT.supabase.co
-
-with your Project URL, and:
-
-    YOUR_SUPABASE_PUBLISHABLE_KEY
-
-with your project's publishable key.
-
-Find these in:
-Project Settings -> API
-
-The publishable key is intended for browser use. Security is enforced by the Row Level Security policies in the SQL file. Never put the Supabase service-role key in this app.
-
-## 4. Deploy to GitHub Pages
-
-Put all files in the root of your GitHub repository.
-
-GitHub:
-Settings -> Pages -> Build and deployment -> Deploy from a branch
-
-Choose:
-- Branch: main
-- Folder: / (root)
-
-Then open:
-
-    https://YOUR-USERNAME.github.io/YOUR-REPOSITORY/
-
-## 5. Supabase URL configuration
-
-In Supabase Authentication URL configuration, add your GitHub Pages URL as an allowed Redirect URL / Site URL as appropriate, for example:
-
-    https://YOUR-USERNAME.github.io/calorie-tracker/
-
-This matters particularly when email confirmation links are enabled.
-
-## Data model
-
-- `profiles`: daily calorie target
-- `foods`: user food database
-- `recipes`: recipe metadata and servings
-- `recipe_items`: ingredients and ingredient quantities
-- `diary_entries`: historical daily diary
-
-Diary entries store the calorie value at the time they were entered, so changing a food or recipe later does not rewrite your historic diary totals.
-
-## Important security note
-
-Only use the Supabase publishable browser key in `config.js`. Do not use the `service_role` secret.
+## Important
+Never place a Supabase service_role key in config.js.
