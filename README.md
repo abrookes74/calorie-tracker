@@ -1,4 +1,4 @@
-# Calorie Tracker v3
+# Calorie Tracker v3.4
 
 ## New in v3
 - Food categories
@@ -31,3 +31,26 @@ RecipeSage ingredient lines are human-readable. The app preserves every line. Wh
 
 ## Important
 Never place a Supabase service_role key in config.js.
+
+
+## v3.1 cache fix
+The main script is named `app-v3.1.js` so browsers controlled by the old v2 service worker cannot accidentally reuse the cached v2 `app.js`.
+
+
+## v3.2 import diagnostics
+The RecipeSage import now opens a progress dialog immediately, shows live progress, and displays the exact Supabase error if an import stops.
+
+
+## v3.3 ingredient foods and diary recipes
+- RecipeSage does not export a separate foods collection. v3.3 derives reusable foods from recipeIngredient lines.
+- Imported ingredient foods start with calories unset. Edit them in Foods to enter kcal per 100g/ml or per item/serving.
+- Recipes with a detected or manually entered calories-per-serving value are selectable when adding a diary entry.
+- Recipes without calories show "Set calories to log".
+- Re-running the RecipeSage import skips recipes already imported by RecipeSage identifier.
+
+## v3.4 existing-import backfill
+If RecipeSage recipes were imported using v3/v3.2 before ingredient-food creation existed, use:
+
+Foods -> Build foods from imported recipes
+
+This scans unmatched stored recipe ingredient lines, creates reusable food records with calories unset, and links the existing recipe ingredients to those foods. No RecipeSage re-import or recipe deletion is required.

@@ -67,9 +67,9 @@
       <select id="foodCategoryFilter"><option value="">All categories</option></select>
     </div>
     <div class="button-row utility-row">
-      <button id="exportDataBtn" class="secondary-btn">Export backup</button>
+      <button id="buildIngredientFoodsBtn" class="secondary-btn">Build foods from imported recipes</button><button id="exportDataBtn" class="secondary-btn">Export backup</button>
     </div>
-    <div id="foodList" class="card-list"></div>
+    <p class="hint">Foods created from RecipeSage ingredients are marked as needing calories until you edit them.</p><div id="foodList" class="card-list"></div>
   </section>
 
   <section id="recipes" class="tab-panel">
@@ -105,7 +105,7 @@
     <option>Ingredients</option><option>Other</option>
   </select></label>
   <label>Entry type<select id="foodEntryType"><option value="per100">Per 100 g/ml</option><option value="perunit">Per item/serving</option></select></label>
-  <label>Calories<input id="foodCalories" type="number" min="0" step="0.1" required></label>
+  <label>Calories<input id="foodCalories" type="number" min="0" step="0.1" placeholder="Enter when known"></label>
   <label>Amount for those calories<input id="foodBaseAmount" type="number" min="0.01" step="0.01" value="100" required></label>
   <label>Unit<select id="foodUnit"><option value="g">g</option><option value="ml">ml</option><option value="item">item</option><option value="serving">serving</option></select></label>
   <label>Serving description<input id="foodServing" type="text" placeholder="e.g. 1 slice or 1 pot"></label>
@@ -117,7 +117,7 @@
   <h2 id="recipeDialogTitle">Recipe</h2><input id="recipeId" type="hidden">
   <label>Recipe name<input id="recipeName" type="text" required></label>
   <label>Servings<input id="recipeServings" type="number" min="0.1" step="0.1" value="1" required></label>
-  <label>Imported calories per serving (optional)<input id="recipeImportedCalories" type="number" min="0" step="0.1"></label>
+  <label>Calories per serving (enter manually if not supplied by RecipeSage)<input id="recipeImportedCalories" type="number" min="0" step="0.1"></label>
   <label>Categories / tags<input id="recipeCategories" type="text" placeholder="e.g. main meals, chicken, healthy"></label>
   <label>Source URL<input id="recipeSourceUrl" type="url"></label>
   <label>Instructions<textarea id="recipeInstructions" rows="7"></textarea></label>
@@ -151,5 +151,5 @@
 
 <script src="config.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-<script src="app-v3.1.js"></script>
+<script src="app-v3.4.js"></script>
 </body></html>

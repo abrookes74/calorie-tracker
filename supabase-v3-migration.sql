@@ -38,3 +38,14 @@ create policy "weight own rows" on public.weight_entries
 for all using (auth.uid()=user_id) with check (auth.uid()=user_id);
 
 grant select,insert,update,delete on public.weight_entries to authenticated;
+
+
+-- v3.3: imported ingredient foods may initially have unknown calories.
+alter table public.foods alter column calories drop not null;
+alter table public.foods add column if not exists normalized_name text;
+alter table public.foods add column if not exists imported_ingredient boolean not null default false;
+
+create index if not exists foods_user_normalized_name_idx
+  on public.foods(user_id, normalized_name);
+
+-- Existing calorie check already permits NULL values in PostgreSQL.
