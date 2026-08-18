@@ -1,4 +1,4 @@
-# Calorie Tracker v3.7
+# Calorie Tracker v3.8 Sage
 
 ## New in v3
 - Food categories
@@ -78,3 +78,13 @@ The Add to diary dialog now includes:
 - Add to diary shows a Recipe label filter when Recipe is selected.
 - Recipe label filtering works alongside the existing food-category filter.
 - No database migration is required for v3.7 because recipe categories are already stored.
+
+
+## v3.8 Sage visual refresh
+- Sage-green palette throughout
+- Softer cream background
+- Refined cards, tabs, buttons and dialogs
+- Improved spacing and typography
+- Polished calorie summary and progress bar
+- Updated browser/PWA theme colour
+- No database changes required
