@@ -1,6 +1,6 @@
 # Calorie Tracker v2
 
-A phone-first multi-device Progressive Web App using Supabase.
+A phone-first multi-device Progressive Web App using Supabase. Rather cool.
 
 ## Included
 
