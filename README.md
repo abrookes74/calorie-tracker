@@ -1,4 +1,4 @@
-# Calorie Tracker v3.9 Sage
+# Calorie Tracker v4.0 Shared Catalogue
 
 ## New in v3
 - Food categories
@@ -95,3 +95,7 @@ The Add to diary dialog now includes:
 - Renames the app script to app-v3.9.js.
 - Service worker now deletes all older Calorie Tracker caches during activation.
 - Adds a small "Sage v3.9" marker in the header so you can immediately confirm the new version is loaded.
+
+
+## v4.0 shared catalogue
+Run `supabase-v4-shared-catalogue.sql` first. Foods and Recipes are then readable by every authenticated account; only their owner can edit/delete them. Diary, weight and calorie targets remain private per account.
