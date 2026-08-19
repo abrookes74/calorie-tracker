@@ -1,4 +1,4 @@
-# Calorie Tracker v4.0 Shared Catalogue
+# Calorie Tracker v4.1
 
 ## New in v3
 - Food categories
@@ -99,3 +99,7 @@ The Add to diary dialog now includes:
 
 ## v4.0 shared catalogue
 Run `supabase-v4-shared-catalogue.sql` first. Foods and Recipes are then readable by every authenticated account; only their owner can edit/delete them. Diary, weight and calorie targets remain private per account.
+
+
+## v4.1
+- Fixes the Cancel button in the New/Edit Food dialog. Cancel now explicitly closes the dialog and bypasses form validation.

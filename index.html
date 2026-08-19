@@ -11,7 +11,7 @@
 </head>
 <body>
 <header class="app-header">
-  <div><h1>Calorie Tracker</h1><p>Multi-device calorie diary <span class="version-pill">Shared v4.0</span></p></div>
+  <div><h1>Calorie Tracker</h1><p>Multi-device calorie diary <span class="version-pill">Shared v4.1</span></p></div>
   <button id="accountBtn" class="icon-btn" aria-label="Account">👤</button>
 </header>
 
@@ -114,7 +114,7 @@
   <label>Unit<select id="foodUnit"><option value="g">g</option><option value="ml">ml</option><option value="item">item</option><option value="serving">serving</option></select></label>
   <label>Serving description<input id="foodServing" type="text" placeholder="e.g. 1 slice or 1 pot"></label>
   <label class="check-row"><input id="foodFavourite" type="checkbox"> Favourite</label>
-  <menu><button value="cancel" class="secondary-btn">Cancel</button><button value="save" class="primary-btn">Save food</button></menu>
+  <menu><button type="button" id="cancelFoodBtn" class="secondary-btn">Cancel</button><button type="submit" value="save" class="primary-btn">Save food</button></menu>
 </form></dialog>
 
 <dialog id="recipeDialog"><form method="dialog" id="recipeForm">
@@ -172,5 +172,5 @@
 
 <script src="config.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-<script src="app-v4.0.js"></script>
+<script src="app-v4.1.js"></script>
 </body></html>
