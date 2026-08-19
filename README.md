@@ -1,4 +1,4 @@
-# Calorie Tracker v4.1
+# Calorie Tracker v4.2
 
 ## New in v3
 - Food categories
@@ -103,3 +103,9 @@ Run `supabase-v4-shared-catalogue.sql` first. Foods and Recipes are then readabl
 
 ## v4.1
 - Fixes the Cancel button in the New/Edit Food dialog. Cancel now explicitly closes the dialog and bypasses form validation.
+
+
+## v4.2
+- Fixes Cancel in the Recipe dialog.
+- Fixes Cancel in the Weight dialog.
+- Cancel buttons now explicitly close dialogs and bypass HTML form validation, matching the Food dialog fix.

@@ -11,7 +11,7 @@
 </head>
 <body>
 <header class="app-header">
-  <div><h1>Calorie Tracker</h1><p>Multi-device calorie diary <span class="version-pill">Shared v4.1</span></p></div>
+  <div><h1>Calorie Tracker</h1><p>Multi-device calorie diary <span class="version-pill">Shared v4.2</span></p></div>
   <button id="accountBtn" class="icon-btn" aria-label="Account">👤</button>
 </header>
 
@@ -129,7 +129,7 @@
   <p class="hint">Imported ingredient text is retained even where it cannot yet be matched to one of your calorie foods.</p>
   <div id="ingredientRows"></div>
   <div class="recipe-totals"><span>Calculated total: <strong id="recipeTotalCalories">0</strong> kcal</span><span>Per serving: <strong id="recipePerServing">0</strong> kcal</span></div>
-  <menu><button value="cancel" class="secondary-btn">Cancel</button><button value="save" class="primary-btn">Save recipe</button></menu>
+  <menu><button type="button" id="cancelRecipeBtn" class="secondary-btn">Cancel</button><button type="submit" value="save" class="primary-btn">Save recipe</button></menu>
 </form></dialog>
 
 <dialog id="addDiaryDialog"><form method="dialog" id="addDiaryForm">
@@ -162,7 +162,7 @@
 <dialog id="weightDialog"><form method="dialog" id="weightForm">
   <h2>Add weight</h2><label>Date<input id="weightDate" type="date" required></label>
   <label>Weight (kg)<input id="weightKg" type="number" min="20" max="400" step="0.1" required></label>
-  <menu><button value="cancel" class="secondary-btn">Cancel</button><button value="save" class="primary-btn">Save</button></menu>
+  <menu><button type="button" id="cancelWeightBtn" class="secondary-btn">Cancel</button><button type="submit" value="save" class="primary-btn">Save</button></menu>
 </form></dialog>
 
 <dialog id="importDialog"><form method="dialog">
@@ -172,5 +172,5 @@
 
 <script src="config.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-<script src="app-v4.1.js"></script>
+<script src="app-v4.2.js"></script>
 </body></html>
