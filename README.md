@@ -1,4 +1,4 @@
-# Calorie Tracker v5.0 Usability
+# Calorie Tracker v5.0.1
 
 ## New in v3
 - Food categories
@@ -143,3 +143,8 @@ Diary, weight and profile data remain private to each account.
 - Tappable recipe label chips plus existing search/dropdown filter.
 - Mobile bottom navigation.
 - No database migration required.
+
+
+## V5.0.1
+- Reworks mobile bottom navigation with explicit event listeners and a shared tab activation function.
+- Adds touch handling and stronger active-state feedback.
