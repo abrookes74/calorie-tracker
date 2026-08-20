@@ -7,11 +7,11 @@
   <meta name="apple-mobile-web-app-capable" content="yes">
   <title>Calorie Tracker</title>
   <link rel="manifest" href="manifest.webmanifest">
-  <link rel="stylesheet" href="styles-v4.0.css">
+  <link rel="stylesheet" href="styles-v5.0.css">
 </head>
 <body>
 <header class="app-header">
-  <div><h1>Calorie Tracker</h1><p>Multi-device calorie diary <span class="version-pill">Shared v4.4</span></p></div>
+  <div><h1>Calorie Tracker</h1><p>Multi-device calorie diary <span class="version-pill">V5.0</span></p></div>
   <button id="accountBtn" class="icon-btn" aria-label="Account">👤</button>
 </header>
 
@@ -57,6 +57,10 @@
         <button id="addDiaryBtn" class="primary-btn">+ Add</button>
       </div>
     </div>
+    <section class="quick-panel">
+      <div class="section-heading compact"><h3>Quick add</h3><span class="muted">Recent & favourites</span></div>
+      <div id="quickAddList" class="quick-grid"></div>
+    </section>
     <div id="mealSections"></div>
   </section>
 
@@ -78,6 +82,7 @@
       <input id="recipeSearch" class="search" type="search" placeholder="Search recipes">
       <select id="recipeLabelFilter"><option value="">All recipe labels</option></select>
     </div>
+    <div id="recipeLabelChips" class="recipe-label-chip-row"></div>
     <div class="button-row utility-row">
       <button id="importRecipesBtn" class="secondary-btn">Import RecipeSage JSON</button>
       <input id="recipeImportFile" type="file" accept=".json,application/json" hidden>
@@ -132,6 +137,13 @@
   <menu><button type="button" id="cancelRecipeBtn" class="secondary-btn">Cancel</button><button type="submit" value="save" class="primary-btn">Save recipe</button></menu>
 </form></dialog>
 
+<dialog id="recipeDetailDialog"><form method="dialog">
+  <div class="section-heading compact"><h2 id="recipeDetailName">Recipe</h2><button type="button" id="closeRecipeDetailBtn" class="icon-btn">✕</button></div>
+  <div id="recipeDetailMeta" class="recipe-detail-meta"></div>
+  <div id="recipeDetailIngredients" class="recipe-detail-block"></div>
+  <div id="recipeDetailInstructions" class="recipe-detail-block"></div>
+</form></dialog>
+
 <dialog id="addDiaryDialog"><form method="dialog" id="addDiaryForm">
   <h2 id="diaryDialogTitle">Add to diary</h2><input id="diaryEditId" type="hidden">
   <label>Meal<select id="diaryMeal"><option>Breakfast</option><option>Lunch</option><option>Dinner</option><option>Snacks</option></select></label>
@@ -172,5 +184,11 @@
 
 <script src="config.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-<script src="app-v4.4.js"></script>
+<script src="app-v5.0.js"></script>
+<nav class="mobile-bottom-nav">
+  <button data-mobile-tab="diary" class="mobile-nav-btn active">Today</button>
+  <button data-mobile-tab="foods" class="mobile-nav-btn">Foods</button>
+  <button data-mobile-tab="recipes" class="mobile-nav-btn">Recipes</button>
+  <button data-mobile-tab="weight" class="mobile-nav-btn">Weight</button>
+</nav>
 </body></html>

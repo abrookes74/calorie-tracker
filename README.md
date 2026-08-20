@@ -1,4 +1,4 @@
-# Calorie Tracker v4.4
+# Calorie Tracker v5.0 Usability
 
 ## New in v3
 - Food categories
@@ -131,3 +131,15 @@ After the migration:
 
 Foods retain the v4.3 fully-shared edit/delete model.
 Diary, weight and profile data remain private to each account.
+
+
+## V5.0 Usability
+- Quick Add based on recent diary use plus favourite foods.
+- Add buttons inside Breakfast, Lunch, Dinner and Snacks.
+- Copy the same meal from the previous day.
+- Copy previous day retained.
+- Quantity shortcut buttons.
+- Recipe detail viewer by tapping the recipe name.
+- Tappable recipe label chips plus existing search/dropdown filter.
+- Mobile bottom navigation.
+- No database migration required.
