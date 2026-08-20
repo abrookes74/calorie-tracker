@@ -7,11 +7,11 @@
   <meta name="apple-mobile-web-app-capable" content="yes">
   <title>Calorie Tracker</title>
   <link rel="manifest" href="manifest.webmanifest">
-  <link rel="stylesheet" href="styles-v5.0.2.css">
+  <link rel="stylesheet" href="styles-v5.0.3.css">
 </head>
 <body>
 <header class="app-header">
-  <div><h1>Calorie Tracker</h1><p>Multi-device calorie diary <span class="version-pill">V5.0.2</span></p></div>
+  <div><h1>Calorie Tracker</h1><p>Multi-device calorie diary <span class="version-pill">V5.0.3</span></p></div>
   <button id="accountBtn" class="icon-btn" aria-label="Account">👤</button>
 </header>
 
@@ -164,6 +164,9 @@
       <option value="">All recipe labels</option>
     </select>
   </label>
+  <label>Search
+    <input id="diaryItemSearch" type="search" placeholder="Type part of a food or recipe name">
+  </label>
   <label>Item<select id="diaryItemSelect" required></select></label>
   <label>Amount / servings<input id="diaryQuantity" type="number" min="0.01" step="0.01" value="1" required></label>
   <p class="hint" id="diaryUnitHint"></p>
@@ -184,7 +187,7 @@
 
 <script src="config.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-<script src="app-v5.0.2.js"></script>
+<script src="app-v5.0.3.js"></script>
 <nav class="mobile-bottom-nav">
   <button type="button" data-mobile-tab="diary" class="mobile-nav-btn active" onclick="window.switchMobileTab('diary')">Today</button>
   <button type="button" data-mobile-tab="foods" class="mobile-nav-btn" onclick="window.switchMobileTab('foods')">Foods</button>

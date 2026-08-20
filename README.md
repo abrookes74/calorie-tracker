@@ -1,4 +1,4 @@
-# Calorie Tracker v5.0.2
+# Calorie Tracker v5.0.3
 
 ## New in v3
 - Food categories
@@ -154,3 +154,9 @@ Diary, weight and profile data remain private to each account.
 - Buttons explicitly use type="button".
 - Switching updates class state and inline display state.
 - Navigation errors are surfaced rather than failing silently.
+
+## V5.0.3 diary search
+- Adds a live Search field above the Item dropdown when adding food/recipes to a meal.
+- Search matches partial names and is case-insensitive.
+- Search works together with Food category and Recipe label filters.
+- Search works for Foods only, Recipes only and Foods & recipes modes.
