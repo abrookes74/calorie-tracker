@@ -1,4 +1,4 @@
-# Calorie Tracker v5.0.1
+# Calorie Tracker v5.0.2
 
 ## New in v3
 - Food categories
@@ -148,3 +148,9 @@ Diary, weight and profile data remain private to each account.
 ## V5.0.1
 - Reworks mobile bottom navigation with explicit event listeners and a shared tab activation function.
 - Adds touch handling and stronger active-state feedback.
+
+## V5.0.2 Android/Brave mobile navigation
+- Mobile nav buttons call a global tab-switch function directly.
+- Buttons explicitly use type="button".
+- Switching updates class state and inline display state.
+- Navigation errors are surfaced rather than failing silently.

@@ -1,10 +1,10 @@
 
-const CACHE="calorie-tracker-v5.0.1";
+const CACHE="calorie-tracker-v5.0.2";
 const ASSETS=[
   "./",
   "./index.html",
-  "./styles-v5.0.1.css",
-  "./app-v5.0.1.js",
+  "./styles-v5.0.2.css",
+  "./app-v5.0.2.js",
   "./config.js",
   "./manifest.webmanifest"
 ];

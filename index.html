@@ -7,11 +7,11 @@
   <meta name="apple-mobile-web-app-capable" content="yes">
   <title>Calorie Tracker</title>
   <link rel="manifest" href="manifest.webmanifest">
-  <link rel="stylesheet" href="styles-v5.0.1.css">
+  <link rel="stylesheet" href="styles-v5.0.2.css">
 </head>
 <body>
 <header class="app-header">
-  <div><h1>Calorie Tracker</h1><p>Multi-device calorie diary <span class="version-pill">V5.0.1</span></p></div>
+  <div><h1>Calorie Tracker</h1><p>Multi-device calorie diary <span class="version-pill">V5.0.2</span></p></div>
   <button id="accountBtn" class="icon-btn" aria-label="Account">👤</button>
 </header>
 
@@ -184,11 +184,11 @@
 
 <script src="config.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-<script src="app-v5.0.1.js"></script>
+<script src="app-v5.0.2.js"></script>
 <nav class="mobile-bottom-nav">
-  <button data-mobile-tab="diary" class="mobile-nav-btn active">Today</button>
-  <button data-mobile-tab="foods" class="mobile-nav-btn">Foods</button>
-  <button data-mobile-tab="recipes" class="mobile-nav-btn">Recipes</button>
-  <button data-mobile-tab="weight" class="mobile-nav-btn">Weight</button>
+  <button type="button" data-mobile-tab="diary" class="mobile-nav-btn active" onclick="window.switchMobileTab('diary')">Today</button>
+  <button type="button" data-mobile-tab="foods" class="mobile-nav-btn" onclick="window.switchMobileTab('foods')">Foods</button>
+  <button type="button" data-mobile-tab="recipes" class="mobile-nav-btn" onclick="window.switchMobileTab('recipes')">Recipes</button>
+  <button type="button" data-mobile-tab="weight" class="mobile-nav-btn" onclick="window.switchMobileTab('weight')">Weight</button>
 </nav>
 </body></html>
