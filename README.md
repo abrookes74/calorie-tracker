@@ -1,4 +1,4 @@
-# Calorie Tracker v4.3
+# Calorie Tracker v4.4
 
 ## New in v3
 - Food categories
@@ -116,4 +116,18 @@ Run `supabase-v4.3-shared-food-editing.sql`.
 
 After the migration, every authenticated user can add, edit and delete any shared Food.
 Recipes retain the previous owner-only edit/delete model.
+Diary, weight and profile data remain private to each account.
+
+
+## v4.4 shared Recipe editing
+Run `supabase-v4.4-shared-recipe-editing.sql`.
+
+After the migration:
+- every authenticated user can view Recipes;
+- every authenticated user can add Recipes;
+- every authenticated user can edit any shared Recipe;
+- every authenticated user can delete any shared Recipe;
+- recipe ingredient rows are also editable/deletable by authenticated users.
+
+Foods retain the v4.3 fully-shared edit/delete model.
 Diary, weight and profile data remain private to each account.
