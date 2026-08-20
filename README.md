@@ -1,4 +1,4 @@
-# Calorie Tracker v4.2
+# Calorie Tracker v4.3
 
 ## New in v3
 - Food categories
@@ -109,3 +109,11 @@ Run `supabase-v4-shared-catalogue.sql` first. Foods and Recipes are then readabl
 - Fixes Cancel in the Recipe dialog.
 - Fixes Cancel in the Weight dialog.
 - Cancel buttons now explicitly close dialogs and bypass HTML form validation, matching the Food dialog fix.
+
+
+## v4.3 shared Food editing
+Run `supabase-v4.3-shared-food-editing.sql`.
+
+After the migration, every authenticated user can add, edit and delete any shared Food.
+Recipes retain the previous owner-only edit/delete model.
+Diary, weight and profile data remain private to each account.
